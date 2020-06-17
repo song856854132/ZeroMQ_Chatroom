@@ -24,5 +24,5 @@ python3 client.py <username_you_name_it>
 ### How to run multiple Chat client
 Run Bash script to create multiple user by command 
 ```
-./run.sh.
+./run.sh
 ```
