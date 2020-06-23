@@ -55,11 +55,12 @@ class clientUI():
                 sock1.connect("tcp://127.0.0.1:5678")
                 name = str(sys.argv[1])
                 num = 0
-                while True:
+                
                 # Send a "message" using the socket
-                        sock1.send_string("["+str(sys.argv[1])+"]: " + input("["+str(sys.argv[1])+"]>"))
-                        sent_message = (sock1.recv().decode())
-                        num = num +1
+                sock1.send_string("["+str(sys.argv[1])+"]: " + input("["+str(sys.argv[1])+"]>"))
+                sent_message = (sock1.recv().decode())
+                num = num +1
+                self.after(1000,sendingMessage)
 
         def receivingmessage(self):
                 context = zmq.Context()
@@ -70,34 +71,35 @@ class clientUI():
                 # Define subscription and messages with prefix to accept.
                 sock.setsockopt_string(zmq.SUBSCRIBE, "")
                 sock.connect("tcp://127.0.0.1:5680")
-                while True:
-                        message= sock.recv().decode()
-                        if message.find("["+str(sys.argv[1])+"]: "):
-                                print("\n"+message+"\n["+str(sys.argv[1])+"] ")        
+                
+                message= sock.recv().decode()
+                if message.find("["+str(sys.argv[1])+"]: "):
+                        print("\n"+message+"\n["+str(sys.argv[1])+"] ") 
+                self.after(1000,receivingMessage)
 
-print("User["+str(sys.argv[1])+"] Connected to the chat server.")
+        print("User["+str(sys.argv[1])+"] Connected to the chat server.")
 
 
 
 
-sending_input = (Thread(target=receivingmessage,args=( )))
-sending_input.start()
+        sending_input = (Thread(target=receivingmessage,args=( )))
+        sending_input.start()
 
-sending_message = (Thread(target=sendingMessage,args=( )))
-sending_message.start()
-#ensure that the last entry in client is shown
-textbox.see("end")
-#clear the input field
-ourInput.delete(0, END)
+        sending_message = (Thread(target=sendingMessage,args=( )))
+        sending_message.start()
+        #ensure that the last entry in client is shown
+        textbox.see("end")
+        #clear the input field
+        ourInput.delete(0, END)
         
 
 
 #makes it so data is sent on pressing of Send buttom
-root.bind("<Return>", send)
+#root.bind("<Return>", send)
 
-#any print statements are printed to the textbox
-def redirector(inputStr):
-        textbox.insert(INSERT, inputStr)
+        #any print statements are printed to the textbox
+        def redirector(inputStr):
+                textbox.insert(INSERT, inputStr)
 
 #print 
 sys.stdout.write = redirector
