@@ -21,39 +21,44 @@ inputbox = Entry(root)
 inputbox.pack(fill=X, side=BOTTOM)
 inputbox.focus_set()
 
+
+context1 = zmq.Context()
+sock1 = context1.socket(zmq.REQ)
+sock1.connect("tcp://127.0.0.1:5678")
+name = str(sys.argv[1])
+num = 0
 def sendingMessage():
-        context1 = zmq.Context()
-        sock1 = context1.socket(zmq.REQ)
-        sock1.connect("tcp://127.0.0.1:5678")
-        name = str(sys.argv[1])
-        num = 0
-        while True:
         # Send a "message" using the socket
-                sock1.send_string("["+str(sys.argv[1])+"]: " + input("["+str(sys.argv[1])+"]>"))
-                sent_message = (sock1.recv().decode())
-                num = num +1
+        sock1.send_string("["+str(sys.argv[1])+"]: " + input("["+str(sys.argv[1])+"]>"))
+        sent_message = (sock1.recv().decode())
+        num = num +1
+        print("test4")
+        root.after(1000,sendingMessage)
 
-def receivingmessage():
-        context = zmq.Context()
+context = zmq.Context()
 
-        # Define the socket using the "Context"
-        sock = context.socket(zmq.SUB)
+# Define the socket using the "Context"
+sock = context.socket(zmq.SUB)
 
-        # Define subscription and messages with prefix to accept.
-        sock.setsockopt_string(zmq.SUBSCRIBE, "")
-        sock.connect("tcp://127.0.0.1:5680")
-        while True:
-                message= sock.recv().decode()
-                if message.find("["+str(sys.argv[1])+"]: "):
-                        print("\n"+message+"\n["+str(sys.argv[1])+"] ")        
+# Define subscription and messages with prefix to accept.
+sock.setsockopt_string(zmq.SUBSCRIBE, "")
+sock.connect("tcp://127.0.0.1:5680")
+def receivingMessage():
+        message= sock.recv().decode()
+        if message.find("["+str(sys.argv[1])+"]: "):
+                print("\n"+message+"\n["+str(sys.argv[1])+"] ")
+        print("terst3\n")
+        root.after(1000,receivingMessage)        
 
-print("User["+str(sys.argv[1])+"] Connected to the chat server.")
+#print("User["+str(sys.argv[1])+"] Connected to the chat server.")
 
 def send(event):
-        sending_input = (Thread(target=receivingmessage,args=( )))
+        sending_input = (Thread(target=receivingMessage,args=( )))
+        print("test 1\n")
         sending_input.start()
 
         sending_message = (Thread(target=sendingMessage,args=( )))
+        print("test 2\n")
         sending_message.start()
 #ensure that the last entry in client is shown
 textbox.see("end")
