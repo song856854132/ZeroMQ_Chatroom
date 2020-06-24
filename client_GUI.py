@@ -41,21 +41,50 @@ context = zmq.Context()
 sock = context.socket(zmq.SUB)
 
 # Define subscription and messages with prefix to accept.
-sock.setsockopt_string(zmq.SUBSCRIBE, "")
+#sock.setsockopt_string(zmq.SUBSCRIBE, "")
 sock.connect("tcp://127.0.0.1:5680")
 
 
 def sendmess(socket , username, text):
-	#data = "["+username+"]>"+text
-	data = username+" "+text
-	socket.send(data.encode())
-	message= socket.recv().decode()
-	#print(message)
+	global inputbox
+	try:
+		command , mess = text.split(" ",1)
+		objectname , mess2 = mess.split(" ",1)
+		if command == "dm": #私人訊息
+			print ("You talked to ["+objectname+"]>"+mess2)
+		data = username+" "+text
+		socket.send(data.encode())
+		message= socket.recv().decode()
+		inputbox.delete(0, END)
+	except ValueError:
+		data = username+" "+text
+		socket.send(data.encode())
+		message= socket.recv().decode()
+		inputbox.delete(0, END)
+	
 
 def recvthread(socket , username):
-	while True :
+	option1 = "[ALL]"
+	socket.setsockopt_string(zmq.SUBSCRIBE,option1)
+	option2 = "["+username+"]"
+	socket.setsockopt_string(zmq.SUBSCRIBE,option2)
+	while True:
 		message = socket.recv().decode()
-		print(message)
+		try:
+			_ , mess = message.split(":",1)
+			blockcheck , mess2 = mess.split(" ",1)
+			if blockcheck == "bl":
+				blockwho , mess3 = mess2.split(" ",1)
+				if blockwho == username:
+					continue
+				else:
+					print(mess3)
+					
+			else:
+				print(message)
+			
+		except:
+			print(message)
 
 #ensure that the last entry in client is shown
 textbox.see("end")
@@ -74,7 +103,12 @@ sys.stdout.write = redirector
 
 print("User["+str(sys.argv[1])+"] Connected to the chat server.")
 #用來接收pub
+#running = threading.Event() #用來停止thread
+#running.set()
 subthread = threading.Thread(target=recvthread, args = (sock, str(sys.argv[1])))
 subthread.start()
 #start the GUI chatroom
 root.mainloop()
+#subthread.join()
+#context1.term()
+#context.term()
